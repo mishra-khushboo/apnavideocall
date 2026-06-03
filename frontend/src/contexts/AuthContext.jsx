@@ -1,4 +1,3 @@
-import { createContext, useState } from "react";
 import axios from "axios";
 import { createContext, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
@@ -6,12 +5,14 @@ import { useNavigate } from "react-router-dom";
 export const AuthContext = createContext({});
 
 const client = axios.create({
-	baseURL: "localhost:8000/api/v1/users"
+	baseURL: "http://localhost:8000/api/v1/users"
 })
 
 export const AuthProvider = ({ children }) => {
-	const authContext = useContext(AuthContext);
 	const [userData, setUserData] = useState(null);
+	const router = useNavigate();
+
+
 	const handleRegister = async (name, username, password) => {
 		try {
 			let request = await client.post("/register", {
@@ -27,10 +28,25 @@ export const AuthProvider = ({ children }) => {
 		}
 	}
 
-	const router = useNavigate();
+	const handleLogin = async (username, password) => {
+		try {
+			let request = await client.post("/login", {
+				username: username,
+				password: password
+			});
+			if (request.status === 200) {
+				localStorage.setItem("token", request.data.token);
+			}
+		} catch (err) {
+			throw err;
+		}
+	}
 
 	const data = {
-		userData, setUserData, handleRegister
+		userData,
+		setUserData,
+		handleRegister,
+		handleLogin
 	}
 
 	return (

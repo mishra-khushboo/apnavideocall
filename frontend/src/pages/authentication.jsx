@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -11,7 +11,8 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-
+import Snackbar from "@mui/material/Snackbar";
+import { AuthContext } from "../contexts/AuthContext";
 
 
 export default function Authentication() {
@@ -20,14 +21,37 @@ export default function Authentication() {
 	const [password, setPassword] = useState();
 	const [name, setName] = useState();
 	const [error, setError] = useState();
-	const [messages, setMessages] = useState();
+	const [message, setMessage] = useState();
 
 	const [formState, setFormState] = useState(0);
 
 	const [open, setOpen] = useState(false);
 
+	const { handleRegister, handleLogin } = useContext(AuthContext);
+
+	let handleAuth = async () => {
+		try {
+			if (formState === 0) {
+				await handleLogin(username, password);
+			}
+			if (formState === 1) {
+				let result = await handleRegister(name, username, password);
+				setMessage(result);
+				setOpen(true);
+			}
+		} catch (err) {
+			console.log("FULL ERROR:", err);
+			const message =
+				err?.response?.data?.message ||
+				err.message ||
+				"Something went wrong";
+
+			setError(message);
+		}
+	}
+
 	return (
-		<Grid container component="main" sx={{ height: "100vh" }}>
+		<><Grid container component="main" sx={{ height: "100vh" }}>
 			<CssBaseline />
 
 			{/* Left Image */}
@@ -37,6 +61,7 @@ export default function Authentication() {
 				sm={4}
 				md={7}
 				sx={{
+					height: "100%",
 					backgroundImage: "url(https://source.unsplash.com/random)",
 					backgroundRepeat: "no-repeat",
 					backgroundColor: (theme) =>
@@ -64,8 +89,8 @@ export default function Authentication() {
 					</Avatar>
 
 					<div>
-						<Button variant={formState === 0 ? "contained" : ""} onClick={() => { setFormState(0) }}>Sign In</Button>
-						<Button variant={formState === 1 ? "contained" : ""} onClick={() => { setFormState(1) }}>Sign Up</Button>
+						<Button variant={formState === 0 ? "contained" : ""} onClick={() => { setFormState(0); }}>Sign In</Button>
+						<Button variant={formState === 1 ? "contained" : ""} onClick={() => { setFormState(1); }}>Sign Up</Button>
 					</div>
 
 
@@ -79,8 +104,7 @@ export default function Authentication() {
 							label="Full name"
 							name="username"
 							autoFocus
-							onChange={(e) => setName(e.target.value)}
-						/> : <></>}
+							onChange={(e) => setName(e.target.value)} /> : <></>}
 
 						<TextField
 							margin="normal"
@@ -90,9 +114,7 @@ export default function Authentication() {
 							label="Username"
 							name="username"
 							autoFocus
-							onChange={(e) => setUsername(e.target.value)}
-
-						/>
+							onChange={(e) => setUsername(e.target.value)} />
 
 						<TextField
 							margin="normal"
@@ -102,22 +124,22 @@ export default function Authentication() {
 							label="Password"
 							type="password"
 							id="password"
-							onChange={(e) => setPassword(e.target.value)}
-
-						/>
+							onChange={(e) => setPassword(e.target.value)} />
 
 						<FormControlLabel
 							control={<Checkbox value="remember" color="primary" />}
-							label="Remember me"
-						/>
+							label="Remember me" />
+
+						<p style={{ color: "red" }}>{error}</p>
 
 						<Button
 							type="button"
 							fullWidth
 							variant="contained"
 							sx={{ mt: 3, mb: 2 }}
+							onClick={handleAuth}
 						>
-							Sign In
+							{formState === 0 ? "Login" : "Register"}
 						</Button>
 
 
@@ -128,6 +150,10 @@ export default function Authentication() {
 					</Box>
 				</Box>
 			</Grid>
-		</Grid>
+		</Grid><Snackbar
+				open={open}
+				autoHideDuration={4000}
+				message={message}
+			/></>
 	);
 }
