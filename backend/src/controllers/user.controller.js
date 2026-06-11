@@ -8,19 +8,23 @@ const login = async (req, res) => {
 
 	const { username, password } = req.body;
 	if (!username || !password) {
-		return res.status(400).json({message: "Please Provide"})
+		return res.status(400).json({ message: "Please Provide" })
 	}
 
 	try {
 		const user = await User.findOne({ username });
 		if (!user) {
-			return res.status(httpStatus.NOT_FOUND).json({message: "USer Not Found"});
+			return res.status(httpStatus.NOT_FOUND).json({ message: "User Not Found" });
 		}
-		if ( await bcrypt.compare(password, user.password)) {
+
+		let isPasswordCorrect = await bcrypt.compare(password, user.password)
+		if (isPasswordCorrect) {
 			let token = crypto.randomBytes(20).toString("hex");
 			user.token = token;
 			await user.save();
-			return res.status(httpStatus.OK).json({token: token})
+			return res.status(httpStatus.OK).json({ token: token })
+		} else {
+			return res.status(httpStatus.UNAUTHORIZED).json({ message: "Invalid Username or password" })
 		}
 	} catch (e) {
 		return res.status(500).json({ message: `Something went wrong ${e}` });
@@ -28,12 +32,12 @@ const login = async (req, res) => {
 }
 
 const register = async (req, res) => {
-	const { name, username, password } =req.body; 
+	const { name, username, password } = req.body;
 
 	try {
 		const existingUser = await User.findOne({ username });
 		if (existingUser) {
-			return res.status(httpStatus.FOUND).json({message: "USer already exists"})
+			return res.status(httpStatus.FOUND).json({ message: "User already exists" })
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10)
@@ -46,7 +50,7 @@ const register = async (req, res) => {
 		await newUser.save();
 		res.status(httpStatus.CREATED).json({ message: "User Registered" });
 
-	} catch(e) {
+	} catch (e) {
 		res.json({ message: `Something went wrong ${e}` });
 	}
 }

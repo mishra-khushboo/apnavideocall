@@ -17,9 +17,9 @@ import { AuthContext } from "../contexts/AuthContext";
 
 export default function Authentication() {
 
-	const [username, setUsername] = useState();
-	const [password, setPassword] = useState();
-	const [name, setName] = useState();
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
+	const [name, setName] = useState("");
 	const [error, setError] = useState();
 	const [message, setMessage] = useState();
 
@@ -32,12 +32,16 @@ export default function Authentication() {
 	let handleAuth = async () => {
 		try {
 			if (formState === 0) {
-				await handleLogin(username, password);
+				let result = await handleLogin(username, password);
 			}
 			if (formState === 1) {
 				let result = await handleRegister(name, username, password);
+				setUsername("")
 				setMessage(result);
 				setOpen(true);
+				setError("")
+				setFormState(0)
+				setPassword("")
 			}
 		} catch (err) {
 			console.log("FULL ERROR:", err);
@@ -61,18 +65,13 @@ export default function Authentication() {
 				sm={4}
 				md={7}
 				sx={{
-					height: "100%",
-					backgroundImage: "url(https://source.unsplash.com/random)",
+					backgroundImage:
+						"url(https://picsum.photos/1200/900)",
 					backgroundRepeat: "no-repeat",
-					backgroundColor: (theme) =>
-						theme.palette.mode === "light"
-							? theme.palette.grey[50]
-							: theme.palette.grey[900],
 					backgroundSize: "cover",
 					backgroundPosition: "center",
 				}}
 			/>
-
 			{/* Right Form */}
 			<Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
 				<Box
@@ -103,6 +102,7 @@ export default function Authentication() {
 							id="username"
 							label="Full name"
 							name="username"
+							value={name}
 							autoFocus
 							onChange={(e) => setName(e.target.value)} /> : <></>}
 
@@ -113,6 +113,7 @@ export default function Authentication() {
 							id="username"
 							label="Username"
 							name="username"
+							value={username}
 							autoFocus
 							onChange={(e) => setUsername(e.target.value)} />
 
@@ -122,6 +123,7 @@ export default function Authentication() {
 							fullWidth
 							name="password"
 							label="Password"
+							value={password}
 							type="password"
 							id="password"
 							onChange={(e) => setPassword(e.target.value)} />
